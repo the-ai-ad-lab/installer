@@ -4,8 +4,8 @@
 #   curl -fsSL https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/install.sh | bash
 #
 # Installs Claude Code, GitHub CLI, authenticates, verifies access to
-# the private members repo, then installs The AI Ad Lab plugin at user scope.
-# Idempotent. Safe to rerun.
+# the private members repo, then adds the marketplace and installs the
+# The AI Ad Lab plugin. Idempotent. Safe to rerun.
 
 set -euo pipefail
 
@@ -35,6 +35,25 @@ if [ "$(uname -s)" != "Darwin" ]; then
   fail "This installer is for macOS only." "On Windows, use the install.ps1 one liner from the README."
 fi
 
+# ----- Pre-flight Claude Code smoke test -----
+# If Claude Code is already on PATH, verify the binary actually runs and
+# returns a parseable version before doing any destructive work. Members
+# on a broken install get a clear error here instead of confusing failures
+# during marketplace add or plugin install.
+# If Claude Code is not on PATH, this block is a no-op and step 1 will
+# install it via the official installer.
+
+if command -v claude >/dev/null 2>&1; then
+  if ! CLAUDE_PREFLIGHT_VERSION="$(claude --version 2>&1)"; then
+    fail "Claude Code is on PATH but 'claude --version' failed to run." \
+         "Reinstall Claude Code following the official setup guide at https://docs.claude.com/en/docs/claude-code/setup"
+  fi
+  if [ -z "$CLAUDE_PREFLIGHT_VERSION" ]; then
+    fail "Claude Code is on PATH but 'claude --version' returned no output." \
+         "Reinstall Claude Code following the official setup guide at https://docs.claude.com/en/docs/claude-code/setup"
+  fi
+fi
+
 log "Starting The AI Ad Lab bootstrap install on macOS."
 
 # ----- [1/7] Claude Code -----
@@ -56,6 +75,10 @@ if ! command -v claude >/dev/null 2>&1; then
   fi
   if ! command -v claude >/dev/null 2>&1; then
     fail "Claude Code installed but the binary is not on PATH." "Open a fresh terminal and rerun this script."
+  fi
+  if ! claude --version >/dev/null 2>&1; then
+    fail "Claude Code installed but 'claude --version' fails to run." \
+         "Reinstall Claude Code following https://docs.claude.com/en/docs/claude-code/setup"
   fi
   log "Claude Code installed: $(claude --version 2>&1 | head -n 1)"
 else
@@ -123,17 +146,29 @@ log "Access to the-ai-ad-lab/ai-ad-lab confirmed."
 
 step 5 "Adding The AI Ad Lab marketplace..."
 
-claude plugin marketplace add the-ai-ad-lab/ai-ad-lab || \
-  fail "Marketplace add failed." "Run claude plugin marketplace add the-ai-ad-lab/ai-ad-lab manually to see the full error."
-log "Marketplace added."
+# Capture existing marketplaces so we can skip the add if it is already there.
+EXISTING_MARKETPLACES="$(claude plugin marketplace list 2>/dev/null || true)"
+if printf '%s\n' "$EXISTING_MARKETPLACES" | grep -q "the-ai-ad-lab"; then
+  log "Marketplace 'the-ai-ad-lab' already added. Skipping."
+else
+  claude plugin marketplace add the-ai-ad-lab/ai-ad-lab || \
+    fail "Marketplace add failed." "Run claude plugin marketplace add the-ai-ad-lab/ai-ad-lab manually to see the full error."
+  log "Marketplace added."
+fi
 
 # ----- [6/7] Install the plugin -----
 
 step 6 "Installing The AI Ad Lab plugin..."
 
-claude plugin install ai-ad-lab@ai-ad-lab --scope user || \
-  fail "Plugin install failed." "Run claude plugin install ai-ad-lab@ai-ad-lab --scope user manually to see the full error."
-log "Plugin installed."
+# Capture installed plugins so we can skip the install if it is already there.
+EXISTING_PLUGINS="$(claude plugin list 2>/dev/null || true)"
+if printf '%s\n' "$EXISTING_PLUGINS" | grep -q "the-ai-ad-lab"; then
+  log "Plugin 'the-ai-ad-lab' already installed. Skipping."
+else
+  claude plugin install the-ai-ad-lab@the-ai-ad-lab || \
+    fail "Plugin install failed." "Run claude plugin install the-ai-ad-lab@the-ai-ad-lab manually to see the full error."
+  log "Plugin installed."
+fi
 
 # ----- [7/7] Done -----
 
@@ -145,10 +180,11 @@ cat <<'EOF'
 ============================================================
 The AI Ad Lab plugin installed.
 
-Open Claude Code and run /ai-ad-lab:setup to finish configuration.
+Open Claude Code and run /the-ai-ad-lab:setup first to finish configuration.
 
-After /ai-ad-lab:setup, run /ai-ad-lab:welcome to see your skills
-and start your first workflow.
+After /the-ai-ad-lab:setup, run /the-ai-ad-lab:welcome to see your skills
+and start your first workflow. Use /the-ai-ad-lab:doctor at any time to
+verify that everything is healthy.
 ============================================================
 
 EOF

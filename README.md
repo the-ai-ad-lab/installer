@@ -16,7 +16,7 @@ curl -fsSL https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/instal
 irm https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/install.ps1 | iex
 ```
 
-That's it. The installer walks through seven steps, prints clear status before each, and exits cleanly with one line fix instructions if anything fails.
+That's it. The installer walks through seven steps, prints clear status before each, and exits cleanly with one line fix instructions if anything fails. Both scripts are idempotent and safe to rerun.
 
 ## What gets installed
 
@@ -25,9 +25,20 @@ The bootstrap installer puts these on your machine if they aren't already there:
 1. **Claude Code** via Anthropic's official installer (macOS) or winget (Windows)
 2. **GitHub CLI** (`gh`) via Homebrew (macOS) or winget (Windows)
 3. **GitHub authentication** via interactive device code in your browser
-4. **The AI Ad Lab plugin** added to your Claude Code marketplace and installed at user scope
+4. **The AI Ad Lab marketplace** added to your Claude Code config (`claude plugin marketplace add the-ai-ad-lab/ai-ad-lab`)
+5. **The AI Ad Lab plugin** installed from that marketplace (`claude plugin install the-ai-ad-lab@the-ai-ad-lab`)
 
-After the bootstrap completes, open Claude Code and run `/ai-ad-lab:setup` inside Claude Code. That command finishes the rest of the setup: missing dev tools (git, Node 20+, Python 3.12+, ffmpeg), Playwright Chromium, project folder structure, and the four MCP servers.
+If Claude Code is already on your PATH, the installer first runs a pre-flight smoke test (`claude --version`) to make sure the existing install actually works. If it does not, the installer exits early with a pointer to the official Claude Code setup guide before touching anything else.
+
+## What to run after the bootstrap
+
+When the bootstrap finishes, open Claude Code and run, in order:
+
+1. `/the-ai-ad-lab:setup` finishes the rest of the configuration. It detects your OS, installs any missing dev tools (git, Node 20+, Python 3.12+, ffmpeg), pre-warms Playwright Chromium, and verifies the four MCP servers are wired up.
+2. `/the-ai-ad-lab:welcome` greets you, lists every integrated skill grouped by stage, and points you to `/the-ai-ad-lab:next` as the always-on guide for the next best step in your current project.
+3. `/the-ai-ad-lab:doctor` is the diagnostic checklist you can run any time to verify the marketplace, the plugin, all four MCP servers, your Fal AI key, your Meta Ads credentials, and the bundled Claude CLI on your PATH.
+
+All The AI Ad Lab slash commands are namespaced with the `the-ai-ad-lab:` prefix. On Claude Code 2.1.x the prefix is required for plugin commands, so always use the full `/the-ai-ad-lab:<command>` form.
 
 ## Requirements
 

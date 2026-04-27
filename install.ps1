@@ -3,8 +3,8 @@
 #   irm https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/install.ps1 | iex
 #
 # Installs Claude Code, GitHub CLI, authenticates, verifies access to
-# the private members repo, then installs The AI Ad Lab plugin at user scope.
-# Idempotent. Safe to rerun.
+# the private members repo, then adds the marketplace and installs the
+# The AI Ad Lab plugin. Idempotent. Safe to rerun.
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -50,6 +50,33 @@ if ($PSVersionTable.Platform -and $PSVersionTable.Platform -ne 'Win32NT') {
   Stop-WithFix 'This installer is for Windows only.' 'On macOS, use the install.sh one liner from the README.'
 }
 
+# ----- Pre-flight Claude Code smoke test -----
+# If Claude Code is already on PATH, verify the binary actually runs and
+# returns a parseable version before doing any destructive work. Members
+# on a broken install get a clear error here instead of confusing failures
+# during marketplace add or plugin install.
+# If Claude Code is not on PATH, this block is a no-op and step 1 will
+# install it via winget.
+
+$preflightClaude = Get-Command claude -ErrorAction SilentlyContinue
+if ($preflightClaude) {
+  $preflightVersion = $null
+  try {
+    $preflightVersion = & claude --version 2>&1
+  } catch {
+    Stop-WithFix "Claude Code is on PATH but 'claude --version' threw an error." `
+      'Reinstall Claude Code following the official setup guide at https://docs.claude.com/en/docs/claude-code/setup'
+  }
+  if ($LASTEXITCODE -ne 0) {
+    Stop-WithFix "Claude Code is on PATH but 'claude --version' failed (exit $LASTEXITCODE)." `
+      'Reinstall Claude Code following the official setup guide at https://docs.claude.com/en/docs/claude-code/setup'
+  }
+  if (-not $preflightVersion -or [string]::IsNullOrWhiteSpace([string]$preflightVersion)) {
+    Stop-WithFix "Claude Code is on PATH but 'claude --version' returned no output." `
+      'Reinstall Claude Code following the official setup guide at https://docs.claude.com/en/docs/claude-code/setup'
+  }
+}
+
 Write-Log 'Starting The AI Ad Lab bootstrap install on Windows.'
 
 # ----- [1/7] Claude Code -----
@@ -71,6 +98,11 @@ if (-not $claudeCmd) {
   $claudeCmd = Get-Command claude -ErrorAction SilentlyContinue
   if (-not $claudeCmd) {
     Stop-WithFix 'Claude Code installed but binary is not on PATH.' 'Open a fresh PowerShell window and rerun this script.'
+  }
+  & claude --version | Out-Null
+  if ($LASTEXITCODE -ne 0) {
+    Stop-WithFix "Claude Code installed but 'claude --version' fails to run (exit $LASTEXITCODE)." `
+      'Reinstall Claude Code following https://docs.claude.com/en/docs/claude-code/setup'
   }
   Write-Log "Claude Code installed: $(& claude --version)"
 } else {
@@ -150,21 +182,33 @@ Write-Log 'Access to the-ai-ad-lab/ai-ad-lab confirmed.'
 
 Write-Step 5 'Adding The AI Ad Lab marketplace...'
 
-& claude plugin marketplace add the-ai-ad-lab/ai-ad-lab
-if ($LASTEXITCODE -ne 0) {
-  Stop-WithFix 'Marketplace add failed.' 'Run claude plugin marketplace add the-ai-ad-lab/ai-ad-lab manually to see the full error.'
+# Capture existing marketplaces so we can skip the add if it is already there.
+$existingMarketplaces = & claude plugin marketplace list 2>$null | Out-String
+if ($existingMarketplaces -match 'the-ai-ad-lab') {
+  Write-Log "Marketplace 'the-ai-ad-lab' already added. Skipping."
+} else {
+  & claude plugin marketplace add the-ai-ad-lab/ai-ad-lab
+  if ($LASTEXITCODE -ne 0) {
+    Stop-WithFix 'Marketplace add failed.' 'Run claude plugin marketplace add the-ai-ad-lab/ai-ad-lab manually to see the full error.'
+  }
+  Write-Log 'Marketplace added.'
 }
-Write-Log 'Marketplace added.'
 
 # ----- [6/7] Install the plugin -----
 
 Write-Step 6 'Installing The AI Ad Lab plugin...'
 
-& claude plugin install 'ai-ad-lab@ai-ad-lab' --scope user
-if ($LASTEXITCODE -ne 0) {
-  Stop-WithFix 'Plugin install failed.' 'Run claude plugin install ai-ad-lab@ai-ad-lab --scope user manually to see the full error.'
+# Capture installed plugins so we can skip the install if it is already there.
+$existingPlugins = & claude plugin list 2>$null | Out-String
+if ($existingPlugins -match 'the-ai-ad-lab') {
+  Write-Log "Plugin 'the-ai-ad-lab' already installed. Skipping."
+} else {
+  & claude plugin install 'the-ai-ad-lab@the-ai-ad-lab'
+  if ($LASTEXITCODE -ne 0) {
+    Stop-WithFix 'Plugin install failed.' 'Run claude plugin install the-ai-ad-lab@the-ai-ad-lab manually to see the full error.'
+  }
+  Write-Log 'Plugin installed.'
 }
-Write-Log 'Plugin installed.'
 
 # ----- [7/7] Done -----
 
@@ -176,10 +220,11 @@ Write-Log 'Bootstrap install complete.'
 ============================================================
 The AI Ad Lab plugin installed.
 
-Open Claude Code and run /ai-ad-lab:setup to finish configuration.
+Open Claude Code and run /the-ai-ad-lab:setup first to finish configuration.
 
-After /ai-ad-lab:setup, run /ai-ad-lab:welcome to see your skills
-and start your first workflow.
+After /the-ai-ad-lab:setup, run /the-ai-ad-lab:welcome to see your skills
+and start your first workflow. Use /the-ai-ad-lab:doctor at any time to
+verify that everything is healthy.
 ============================================================
 
 '@ | Write-Host
