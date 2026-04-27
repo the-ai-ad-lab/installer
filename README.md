@@ -16,15 +16,21 @@ curl -fsSL https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/instal
 irm https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/install.ps1 | iex
 ```
 
-That's it. The installer walks through seven steps, prints clear status before each, and exits cleanly with one line fix instructions if anything fails. Both scripts are idempotent and safe to rerun.
+You will see at most two prompts during install. The script will tell you exactly what to click.
+
+#### Windows troubleshooting
+
+* **claude command not found after install.** Close PowerShell and open a new window. PATH changes only apply to new windows.
+* **Script says alias is still enabled after I toggled it.** Open a new PowerShell window and run the command again.
+* **Anything else.** Run `/the-ai-ad-lab:doctor` inside Claude Code and share the output in Skool.
 
 ## What gets installed
 
 The bootstrap installer puts these on your machine if they aren't already there:
 
-1. **Claude Code** via Anthropic's official installer (macOS) or winget (Windows)
-2. **GitHub CLI** (`gh`) via Homebrew (macOS) or winget (Windows)
-3. **GitHub authentication** via interactive device code in your browser
+1. **Claude Code** via Anthropic's official installer at `https://claude.ai/install.ps1` (Windows) or `https://claude.ai/install.sh` (macOS). The CLI lands in `~/.local/bin/`.
+2. **GitHub CLI** (`gh`) via Homebrew on macOS. Not installed by the Windows script.
+3. **GitHub authentication** via interactive device code in your browser (macOS only).
 4. **The AI Ad Lab marketplace** added to your Claude Code config (`claude plugin marketplace add the-ai-ad-lab/ai-ad-lab`)
 5. **The AI Ad Lab plugin** installed from that marketplace (`claude plugin install the-ai-ad-lab@the-ai-ad-lab`)
 
