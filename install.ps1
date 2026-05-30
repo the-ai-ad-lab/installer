@@ -1,9 +1,9 @@
-# Public bootstrap installer for The AI Ad Lab on Windows.
+# Public bootstrap installer for AI Ad Lab on Windows.
 # Members run this in PowerShell:
 #   irm https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/install.ps1 | iex
 #
 # Installs the official Claude Code native CLI from Anthropic, puts it on PATH,
-# then adds The AI Ad Lab marketplace and installs the plugin. Idempotent.
+# then adds AI Ad Lab marketplace and installs the plugin. Idempotent.
 
 $ErrorActionPreference = 'Stop'
 
@@ -56,10 +56,10 @@ try {
     Write-Step 'PHASE A. Welcome'
 
     Write-Host '    ============================================================'
-    Write-Host '    Welcome to The AI Ad Lab installer for Windows.'
+    Write-Host '    Welcome to AI Ad Lab installer for Windows.'
     Write-Host '    ============================================================'
     Write-Host ''
-    Write-Info 'This will install Claude Code, then install The AI Ad Lab plugin.'
+    Write-Info 'This will install Claude Code, then install AI Ad Lab plugin.'
     Write-Info 'Total time: about 3 minutes.'
     Write-Info ''
     Write-Info 'You may see one Windows security prompt during install. Click yes if you do.'
@@ -265,7 +265,7 @@ If that prints a version number, you are good. If it prints anything else, run:
 
     claude doctor
 
-and share the output in The AI Ad Lab Skool community.
+and share the output in AI Ad Lab Skool community.
 "@
     }
     Write-Ok "Claude Code is working. Version: $versionOutput"
@@ -281,7 +281,7 @@ If that prints a version number, you are good. If it prints anything else, run:
 
     claude doctor
 
-and share the output in The AI Ad Lab Skool community.
+and share the output in AI Ad Lab Skool community.
 "@
 }
 
@@ -290,15 +290,15 @@ and share the output in The AI Ad Lab Skool community.
 # ---------------------------------------------------------------------------
 
 try {
-    Write-Step 'PHASE G. Installing The AI Ad Lab plugin'
+    Write-Step 'PHASE G. Installing AI Ad Lab plugin'
 
     $claudeBin = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
 
     $existingMarketplaces = & $claudeBin plugin marketplace list 2>$null | Out-String
-    if ($existingMarketplaces -match 'the-ai-ad-lab') {
+    if ($existingMarketplaces -match 'ai-ad-lab') {
         Write-Ok 'Marketplace already added. Skipping.'
     } else {
-        Write-Info 'Adding The AI Ad Lab marketplace.'
+        Write-Info 'Adding AI Ad Lab marketplace.'
         & $claudeBin plugin marketplace add the-ai-ad-lab/ai-ad-lab
         if ($LASTEXITCODE -ne 0) {
             Stop-Phase 'PHASE G (adding marketplace)' `
@@ -309,18 +309,18 @@ error message:
 
     claude plugin marketplace add the-ai-ad-lab/ai-ad-lab
 
-Then share the output in The AI Ad Lab Skool community.
+Then share the output in AI Ad Lab Skool community.
 "@
         }
         Write-Ok 'Marketplace added.'
     }
 
     $existingPlugins = & $claudeBin plugin list 2>$null | Out-String
-    if ($existingPlugins -match 'the-ai-ad-lab') {
+    if ($existingPlugins -match 'ai-ad-lab') {
         Write-Ok 'Plugin already installed. Skipping.'
     } else {
-        Write-Info 'Installing The AI Ad Lab plugin.'
-        & $claudeBin plugin install 'the-ai-ad-lab@the-ai-ad-lab'
+        Write-Info 'Installing AI Ad Lab plugin.'
+        & $claudeBin plugin install 'ai-ad-lab@ai-ad-lab'
         if ($LASTEXITCODE -ne 0) {
             Stop-Phase 'PHASE G (installing plugin)' `
                 "Installing the plugin did not complete." `
@@ -328,9 +328,9 @@ Then share the output in The AI Ad Lab Skool community.
 Open a new PowerShell window and run this command on its own to see the full
 error message:
 
-    claude plugin install the-ai-ad-lab@the-ai-ad-lab
+    claude plugin install ai-ad-lab@ai-ad-lab
 
-Then share the output in The AI Ad Lab Skool community.
+Then share the output in AI Ad Lab Skool community.
 "@
         }
         Write-Ok 'Plugin installed.'
@@ -343,9 +343,9 @@ Open a new PowerShell window and run these two commands one at a time to see
 the full error messages:
 
     claude plugin marketplace add the-ai-ad-lab/ai-ad-lab
-    claude plugin install the-ai-ad-lab@the-ai-ad-lab
+    claude plugin install ai-ad-lab@ai-ad-lab
 
-Then share the output in The AI Ad Lab Skool community.
+Then share the output in AI Ad Lab Skool community.
 "@
 }
 
@@ -357,7 +357,7 @@ try {
     Write-Step 'PHASE H. All done'
 
     Write-Host '    ============================================================' -ForegroundColor Green
-    Write-Host '    The AI Ad Lab is installed.' -ForegroundColor Green
+    Write-Host '    AI Ad Lab is installed.' -ForegroundColor Green
     Write-Host '    ============================================================' -ForegroundColor Green
     Write-Host ''
     Write-Info 'One last step: close this PowerShell window and open a NEW PowerShell'
@@ -369,17 +369,17 @@ try {
     Write-Host ''
     Write-Info 'Once Claude Code starts, run these three commands in order:'
     Write-Info ''
-    Write-Info '    /the-ai-ad-lab:setup'
-    Write-Info '    /the-ai-ad-lab:welcome'
-    Write-Info '    /the-ai-ad-lab:doctor'
+    Write-Info '    /ai-ad-lab:setup'
+    Write-Info '    /ai-ad-lab:welcome'
+    Write-Info '    /ai-ad-lab:doctor'
     Write-Host ''
-    Write-Info 'If anything looks wrong, run /the-ai-ad-lab:doctor and share the'
+    Write-Info 'If anything looks wrong, run /ai-ad-lab:doctor and share the'
     Write-Info 'output in Skool.'
     Write-Host ''
 } catch {
     Stop-Phase 'PHASE H (final message)' `
         "The plugin installed but the script could not print the final message." `
-        "Close this window, open a fresh PowerShell window, type 'claude' and run /the-ai-ad-lab:welcome."
+        "Close this window, open a fresh PowerShell window, type 'claude' and run /ai-ad-lab:welcome."
 }
 
 exit 0

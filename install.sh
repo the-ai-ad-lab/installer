@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Public bootstrap installer for The AI Ad Lab.
+# Public bootstrap installer for AI Ad Lab.
 # Members run this on macOS:
 #   curl -fsSL https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/install.sh | bash
 #
 # Installs Claude Code, GitHub CLI, authenticates, verifies access to
 # the private members repo, then adds the marketplace and installs the
-# The AI Ad Lab plugin. Idempotent. Safe to rerun.
+# AI Ad Lab plugin. Idempotent. Safe to rerun.
 
 set -euo pipefail
 
@@ -54,7 +54,7 @@ if command -v claude >/dev/null 2>&1; then
   fi
 fi
 
-log "Starting The AI Ad Lab bootstrap install on macOS."
+log "Starting AI Ad Lab bootstrap install on macOS."
 
 # ----- [1/7] Claude Code -----
 
@@ -133,7 +133,7 @@ if ! gh api repos/the-ai-ad-lab/ai-ad-lab >/dev/null 2>&1; then
   printf 'This is a private repo for active Skool community members.\n'
   printf 'Your Skool subscription should add you to the GitHub team\n'
   printf 'within 24 hours. If it has been longer, post your GitHub\n'
-  printf 'username in The AI Ad Lab Skool community and we will add\n'
+  printf 'username in AI Ad Lab Skool community and we will add\n'
   printf 'you manually.\n'
   printf '\nOnce you have access, rerun this installer:\n'
   printf '  curl -fsSL https://raw.githubusercontent.com/the-ai-ad-lab/installer/main/install.sh | bash\n'
@@ -144,12 +144,12 @@ log "Access to the-ai-ad-lab/ai-ad-lab confirmed."
 
 # ----- [5/7] Add the marketplace -----
 
-step 5 "Adding The AI Ad Lab marketplace..."
+step 5 "Adding AI Ad Lab marketplace..."
 
 # Capture existing marketplaces so we can skip the add if it is already there.
 EXISTING_MARKETPLACES="$(claude plugin marketplace list 2>/dev/null || true)"
-if printf '%s\n' "$EXISTING_MARKETPLACES" | grep -q "the-ai-ad-lab"; then
-  log "Marketplace 'the-ai-ad-lab' already added. Skipping."
+if printf '%s\n' "$EXISTING_MARKETPLACES" | grep -q "ai-ad-lab"; then
+  log "Marketplace 'ai-ad-lab' already added. Skipping."
 else
   claude plugin marketplace add the-ai-ad-lab/ai-ad-lab || \
     fail "Marketplace add failed." "Run claude plugin marketplace add the-ai-ad-lab/ai-ad-lab manually to see the full error."
@@ -158,15 +158,15 @@ fi
 
 # ----- [6/7] Install the plugin -----
 
-step 6 "Installing The AI Ad Lab plugin..."
+step 6 "Installing AI Ad Lab plugin..."
 
 # Capture installed plugins so we can skip the install if it is already there.
 EXISTING_PLUGINS="$(claude plugin list 2>/dev/null || true)"
-if printf '%s\n' "$EXISTING_PLUGINS" | grep -q "the-ai-ad-lab"; then
-  log "Plugin 'the-ai-ad-lab' already installed. Skipping."
+if printf '%s\n' "$EXISTING_PLUGINS" | grep -q "ai-ad-lab"; then
+  log "Plugin 'ai-ad-lab' already installed. Skipping."
 else
-  claude plugin install the-ai-ad-lab@the-ai-ad-lab || \
-    fail "Plugin install failed." "Run claude plugin install the-ai-ad-lab@the-ai-ad-lab manually to see the full error."
+  claude plugin install ai-ad-lab@ai-ad-lab || \
+    fail "Plugin install failed." "Run claude plugin install ai-ad-lab@ai-ad-lab manually to see the full error."
   log "Plugin installed."
 fi
 
@@ -178,12 +178,12 @@ log "Bootstrap install complete."
 cat <<'EOF'
 
 ============================================================
-The AI Ad Lab plugin installed.
+AI Ad Lab plugin installed.
 
-Open Claude Code and run /the-ai-ad-lab:setup first to finish configuration.
+Open Claude Code and run /ai-ad-lab:setup first to finish configuration.
 
-After /the-ai-ad-lab:setup, run /the-ai-ad-lab:welcome to see your skills
-and start your first workflow. Use /the-ai-ad-lab:doctor at any time to
+After /ai-ad-lab:setup, run /ai-ad-lab:welcome to see your skills
+and start your first workflow. Use /ai-ad-lab:doctor at any time to
 verify that everything is healthy.
 ============================================================
 
